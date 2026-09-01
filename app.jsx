@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   Plus,
   Trash2,
@@ -183,6 +185,7 @@ export default function CVMaker() {
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const printRef = useRef(null);
 
   // Listen to auth state changes
   useEffect(() => {
@@ -311,7 +314,54 @@ export default function CVMaker() {
         .filter(Boolean),
     }));
 
-  const handlePrint = () => window.print();
+  const handlePrint = async () => {
+    const input = printRef.current;
+    if (!input) return;
+
+    const previousView = mobileView;
+    if (mobileView !== "preview") {
+      setMobileView("preview");
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+
+    try {
+      const canvas = await html2canvas(input, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight, undefined, "FAST");
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`${(data.personal.name || "resume").replace(/\s+/g, "_")}_resume.pdf`);
+    } catch (error) {
+      console.error("PDF export failed:", error);
+      window.alert("PDF export failed. Please try again.");
+    } finally {
+      if (previousView !== "preview") {
+        setMobileView(previousView);
+      }
+    }
+  };
 
   const atsText = useMemo(() => {
     const p = data.personal;
@@ -924,7 +974,7 @@ export default function CVMaker() {
         </div>
 
         <div className={"cvm-preview-pane" + (mobileView !== "preview" ? " hide-mobile" : "")}>
-          <div className="cvm-page" id="resume-print-area">
+          <div className="cvm-page" id="resume-print-area" ref={printRef}>
             <h1 className="cvm-r-name">
               {data.personal.name || <span className="cvm-r-empty">Your Name</span>}
             </h1>
