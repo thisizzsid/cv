@@ -3,10 +3,14 @@
 :root {
   --bg: #F5F4EF;
   --panel: #FFFFFF;
+  --panel-alt: #F8F7F3;
   --ink: #1C1F26;
   --ink-soft: #565B66;
-  --muted: #9A9EA6;
+  --muted: #6B7280;
   --border: #E3E1DA;
+  --page-bg: #ECEAE2;
+  --input-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
   --accent: #2F5D50;
 }
 
@@ -35,15 +39,32 @@ body {
 .cvm-root {
   --bg: #F5F4EF;
   --panel: #FFFFFF;
+  --panel-alt: #F8F7F3;
   --ink: #1C1F26;
   --ink-soft: #565B66;
-  --muted: #9A9EA6;
+  --muted: #6B7280;
   --border: #E3E1DA;
+  --page-bg: #ECEAE2;
+  --input-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   background: var(--bg);
   color: var(--ink);
   min-height: 100vh;
   width: 100%;
+}
+
+.cvm-root.cvm-theme-dark {
+  --bg: #0F172A;
+  --panel: #111C2E;
+  --panel-alt: #172338;
+  --ink: #F5F7FB;
+  --ink-soft: #D9E3F1;
+  --muted: #A9B7C9;
+  --border: #2A3A4C;
+  --page-bg: #09111D;
+  --input-bg: #0F1A2B;
+  --card-bg: #122033;
 }
 
 .cvm-root * {
@@ -62,6 +83,49 @@ body {
   top: 0;
   z-index: 20;
   flex-wrap: wrap;
+}
+
+.cvm-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  background: var(--panel-alt);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 10px 6px 7px;
+  cursor: pointer;
+}
+
+.cvm-theme-toggle-track {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px;
+}
+
+.cvm-theme-toggle-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--panel);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+  transform: translateX(0);
+}
+
+.cvm-root.cvm-theme-dark .cvm-theme-toggle-track {
+  justify-content: flex-end;
 }
 
 .cvm-brand {
@@ -104,6 +168,10 @@ body {
   margin-right: 6px;
 }
 
+.cvm-root.cvm-theme-dark .cvm-swatch.active {
+  border-color: #F8FAFC;
+}
+
 .cvm-swatch {
   width: 20px;
   height: 20px;
@@ -132,6 +200,11 @@ body {
   color: var(--ink);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.cvm-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .cvm-btn:hover {
@@ -172,7 +245,7 @@ body {
   top: 73px;
   height: calc(100vh - 73px);
   overflow-y: auto;
-  background: #ECEAE2;
+  background: var(--page-bg);
   padding: 36px 28px;
   display: flex;
   justify-content: center;
@@ -264,7 +337,7 @@ body {
   padding: 9px 11px;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--input-bg);
   color: var(--ink);
   outline: none;
 }
@@ -297,7 +370,7 @@ body {
   border-radius: 9px;
   padding: 16px;
   margin-bottom: 12px;
-  background: #fff;
+  background: var(--card-bg);
   position: relative;
 }
 
@@ -356,11 +429,11 @@ body {
 .cvm-page {
   width: 100%;
   max-width: 700px;
-  background: #fff;
+  background: var(--panel);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 12px 32px rgba(0, 0, 0, 0.08);
   padding: 52px 54px;
   font-family: 'Inter', sans-serif;
-  color: #1C1F26;
+  color: var(--ink);
   min-height: 940px;
 }
 
@@ -381,13 +454,13 @@ body {
 
 .cvm-r-contact {
   font-size: 12px;
-  color: #565B66;
+  color: var(--ink-soft);
   margin: 0 0 22px;
 }
 
 .cvm-r-contact span:not(:last-child)::after {
   content: "  •  ";
-  color: #C7C4BB;
+  color: var(--muted);
 }
 
 .cvm-r-hr {
@@ -414,7 +487,7 @@ body {
 .cvm-r-summary {
   font-size: 13px;
   line-height: 1.6;
-  color: #2B2E36;
+  color: var(--ink);
   margin: 0;
 }
 
@@ -439,18 +512,18 @@ body {
 
 .cvm-r-org {
   font-weight: 500;
-  color: #2B2E36;
+  color: var(--ink);
 }
 
 .cvm-r-dates {
   font-size: 12px;
-  color: #6B7280;
+  color: var(--muted);
   white-space: nowrap;
 }
 
 .cvm-r-loc {
   font-size: 12px;
-  color: #6B7280;
+  color: var(--muted);
 }
 
 .cvm-r-bullets {
@@ -458,7 +531,7 @@ body {
   padding-left: 16px;
   font-size: 12.5px;
   line-height: 1.6;
-  color: #2B2E36;
+  color: var(--ink);
 }
 
 .cvm-r-bullets li {
@@ -474,13 +547,13 @@ body {
 .cvm-r-skill {
   font-size: 12px;
   padding: 3px 10px;
-  border: 1px solid #E3E1DA;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: #2B2E36;
+  color: var(--ink);
 }
 
 .cvm-r-empty {
-  color: #B7B4AC;
+  color: var(--muted);
   font-style: italic;
 }
 

@@ -171,6 +171,7 @@ export default function CVMaker() {
   const [user, setUser] = useState(null);
   const [data, setData] = useState(loadFromLocalStorage('currentResume') || BLANK);
   const [accent, setAccent] = useState(ACCENTS[0].value);
+  const [theme, setTheme] = useState("light");
   const [mobileView, setMobileView] = useState("edit");
   const [copied, setCopied] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
@@ -531,7 +532,7 @@ export default function CVMaker() {
   };
 
   return (
-    <div className="cvm-root" style={{ "--accent": accent }}>
+    <div className={`cvm-root cvm-theme-${theme}`} style={{ "--accent": accent }}>
       <div className="cvm-topbar">
         <div className="cvm-brand">
           <span className="cvm-brand-mark" />
@@ -541,6 +542,18 @@ export default function CVMaker() {
           </div>
         </div>
         <div className="cvm-topbar-actions">
+          <button
+            type="button"
+            className="cvm-theme-toggle"
+            onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
+            aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+            title={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
+          >
+            <span className="cvm-theme-toggle-track">
+              <span className="cvm-theme-toggle-thumb">{theme === "dark" ? "🌙" : "☀️"}</span>
+            </span>
+            <span>{theme === "dark" ? "Dark" : "Light"}</span>
+          </button>
           <div className="cvm-swatches">
             {ACCENTS.map((a) => (
               <button
