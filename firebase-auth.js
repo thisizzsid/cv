@@ -10,34 +10,22 @@ import { auth } from './firebase-config';
 
 // Sign up with email and password
 export const signUp = async (email, password, displayName = '') => {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    if (displayName) {
-      await updateProfile(userCredential.user, { displayName });
-    }
-    return userCredential.user;
-  } catch (error) {
-    throw error;
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  if (displayName) {
+    await updateProfile(userCredential.user, { displayName });
   }
+  return userCredential.user;
 };
 
 // Sign in with email and password
 export const signIn = async (email, password) => {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
-  } catch (error) {
-    throw error;
-  }
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  return userCredential.user;
 };
 
 // Sign out
 export const signOutUser = async () => {
-  try {
-    await signOut(auth);
-  } catch (error) {
-    throw error;
-  }
+  await signOut(auth);
 };
 
 // Get current user
@@ -52,9 +40,5 @@ export const onAuthChange = (callback) => {
 
 // Reset password
 export const resetPassword = async (email) => {
-  try {
-    await sendPasswordResetEmail(auth, email);
-  } catch (error) {
-    throw error;
-  }
+  await sendPasswordResetEmail(auth, email);
 };

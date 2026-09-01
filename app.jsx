@@ -15,9 +15,13 @@ import {
   LogOut,
   LogIn,
   X,
+  Eye,
+  EyeOff,
+  Mail,
+  MapPin,
 } from "lucide-react";
-import { onAuthChange, signOutUser, getCurrentUser, signIn, signUp } from "./firebase-auth";
-import { saveResume, getUserResumes, getResume, deleteResume, saveToLocalStorage, loadFromLocalStorage } from "./firebase-service";
+import { onAuthChange, signOutUser, signIn, signUp } from "./firebase-auth";
+import { saveResume, saveToLocalStorage, loadFromLocalStorage } from "./firebase-service";
 
 const STOPWORDS = new Set(
   "a an the and or of to in on for with at by from as is are was were be been being this that these those you your our we they it its their will can may should must have has had do does did not no about into over under after before more most other than then so such per across including include includes ability strong excellent looking role team work working experience years year".split(
@@ -167,6 +171,62 @@ function SectionHeader({ step, title, desc }) {
   );
 }
 
+function InfoPage({ page, onBack }) {
+  const content = {
+    about: {
+      label: "About",
+      title: "A calmer way to make a stronger CV.",
+      body: "Lets make CV keeps resume writing focused: clear prompts, ATS-friendly structure, and a preview that shows exactly what employers will see.",
+    },
+    founder: {
+      label: "Founder",
+      title: "Siddhant Anand",
+      body: "Founder based in the USA, building a calmer and more empowering way for people to create professional resumes and share their stories.",
+      email: "siddhant.anand17@gmail.com",
+      highlights: ["Product thinker", "Builder at heart", "Designing for clarity"],
+    },
+    legal: {
+      label: "Legal",
+      title: "Your work stays yours.",
+      body: "Your draft is kept in this browser unless you choose to save or sync it. Use the export tools to keep a copy, and only share your resume where you intend to.",
+    },
+  }[page];
+
+  return (
+    <main className="cvm-info-page">
+      <button className="cvm-btn cvm-btn-ghost" onClick={onBack}>
+        ← Back to builder
+      </button>
+      <span className="cvm-eyebrow">{content.label}</span>
+      <h2>{content.title}</h2>
+      <p>{content.body}</p>
+      {page === "founder" && (
+        <div className="cvm-founder-profile">
+          <div className="cvm-founder-orbit" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className="cvm-founder-details">
+            <div className="cvm-founder-meta">
+              <span><MapPin size={15} /> USA</span>
+              <a href={`mailto:${content.email}`}><Mail size={15} /> {content.email}</a>
+            </div>
+            <div className="cvm-founder-highlights">
+              {content.highlights.map((highlight) => (
+                <span key={highlight}>{highlight}</span>
+              ))}
+            </div>
+            <p className="cvm-founder-note">
+              “The best tools make progress feel possible.”
+            </p>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
 export default function CVMaker() {
   const [user, setUser] = useState(null);
   const [data, setData] = useState(loadFromLocalStorage('currentResume') || BLANK);
@@ -175,7 +235,6 @@ export default function CVMaker() {
   const [copied, setCopied] = useState(false);
   const [jobDescription, setJobDescription] = useState("");
   const [currentResumeId, setCurrentResumeId] = useState(null);
-  const [savedResumes, setSavedResumes] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -184,6 +243,8 @@ export default function CVMaker() {
   const [authName, setAuthName] = useState('');
   const [authError, setAuthError] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const [infoPage, setInfoPage] = useState(null);
   const fileInputRef = useRef(null);
   const printRef = useRef(null);
 
@@ -191,10 +252,6 @@ export default function CVMaker() {
   useEffect(() => {
     const unsubscribe = onAuthChange((currentUser) => {
       setUser(currentUser);
-      if (currentUser) {
-        // Load user's saved resumes from cloud
-        loadUserResumes();
-      }
     });
     return () => unsubscribe();
   }, []);
@@ -208,33 +265,6 @@ export default function CVMaker() {
     }, 30000);
     return () => clearInterval(interval);
   }, [data]);
-
-  const loadUserResumes = async () => {
-    try {
-      const resumes = await getUserResumes();
-      setSavedResumes(resumes);
-    } catch (error) {
-      console.error('Error loading resumes:', error);
-    }
-  };
-
-  const loadResumeData = async (resumeId) => {
-    try {
-      const resume = await getResume(resumeId);
-      setData({
-        personal: resume.personal,
-        summary: resume.summary,
-        experience: resume.experience,
-        education: resume.education,
-        skills: resume.skills,
-        projects: resume.projects,
-        certifications: resume.certifications,
-      });
-      setCurrentResumeId(resumeId);
-    } catch (error) {
-      console.error('Error loading resume:', error);
-    }
-  };
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
@@ -270,7 +300,6 @@ export default function CVMaker() {
       saveToLocalStorage('currentResume', data);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-      await loadUserResumes();
       alert('Resume saved to cloud!');
     } catch (error) {
       alert('Error saving resume: ' + error.message);
@@ -283,7 +312,6 @@ export default function CVMaker() {
     try {
       await signOutUser();
       setUser(null);
-      setSavedResumes([]);
     } catch (error) {
       alert('Error signing out: ' + error.message);
     }
@@ -531,7 +559,7 @@ export default function CVMaker() {
   };
 
   return (
-    <div className="cvm-root" style={{ "--accent": accent }}>
+    <div className={"cvm-root" + (headerVisible ? "" : " cvm-header-hidden")} style={{ "--accent": accent }}>
       <div className="cvm-topbar">
         <div className="cvm-brand">
           <span className="cvm-brand-mark" />
@@ -547,13 +575,17 @@ export default function CVMaker() {
                 key={a.value}
                 className={"cvm-swatch" + (accent === a.value ? " active" : "")}
                 style={{ background: a.value }}
-                onClick={() => setAccent(a.value)}
+                onClick={() => {
+                  setAccent(a.value);
+                }}
                 title={a.name}
                 aria-label={a.name}
               />
             ))}
           </div>
-          <button className="cvm-btn cvm-btn-ghost" onClick={reset}>
+          <button className="cvm-btn cvm-btn-ghost" onClick={() => {
+            reset();
+          }}>
             <RotateCcw size={14} /> Clear
           </button>
           <input
@@ -563,33 +595,65 @@ export default function CVMaker() {
             style={{ display: "none" }}
             onChange={handleImportJson}
           />
-          <button className="cvm-btn cvm-btn-ghost" onClick={() => fileInputRef.current?.click()}>
+          <button className="cvm-btn cvm-btn-ghost" onClick={() => {
+            fileInputRef.current?.click();
+          }}>
             <Upload size={14} /> Load draft
           </button>
-          <button className="cvm-btn cvm-btn-ghost" onClick={downloadJson}>
+          <button className="cvm-btn cvm-btn-ghost" onClick={() => {
+            downloadJson();
+          }}>
             <Save size={14} /> Export JSON
           </button>
-          <button className="cvm-btn" onClick={handleSaveToCloud} disabled={saving} title={user ? "Save to cloud" : "Sign in to save to cloud"}>
+          <button className="cvm-btn" onClick={() => {
+            handleSaveToCloud();
+          }} disabled={saving} title={user ? "Save to cloud" : "Sign in to save to cloud"}>
             <Save size={14} /> {saving ? 'Saving...' : (user ? 'Cloud Save' : 'Save Locally')}
           </button>
-          <button className="cvm-btn" onClick={downloadTxt}>
+          <button className="cvm-btn" onClick={() => {
+            downloadTxt();
+          }}>
             {copied ? <Check size={14} /> : <FileDown size={14} />}
             {copied ? "Downloaded" : "ATS text"}
           </button>
-          <button className="cvm-btn cvm-btn-primary" onClick={handlePrint}>
+          <button className="cvm-btn cvm-btn-primary" onClick={() => {
+            handlePrint();
+          }}>
             <Download size={14} /> Download PDF
           </button>
           {user ? (
-            <button className="cvm-btn cvm-btn-ghost" onClick={handleLogout}>
+            <button className="cvm-btn cvm-btn-ghost" onClick={() => {
+              handleLogout();
+            }}>
               <LogOut size={14} /> Logout
             </button>
           ) : (
-            <button className="cvm-btn" onClick={() => setShowAuthModal(true)}>
+            <button className="cvm-btn" onClick={() => {
+              setShowAuthModal(true);
+            }}>
               <LogIn size={14} /> Sign In
             </button>
           )}
+          <button
+            className="cvm-btn cvm-btn-ghost cvm-header-toggle"
+            onClick={() => setHeaderVisible((visible) => !visible)}
+            aria-label={headerVisible ? "Hide top bar" : "Show top bar"}
+            title={headerVisible ? "Hide top bar" : "Show top bar"}
+          >
+            {headerVisible ? <EyeOff size={14} /> : <Eye size={14} />}
+            {headerVisible ? "Hide" : "View"}
+          </button>
         </div>
       </div>
+      {!headerVisible && (
+        <button
+          className="cvm-topbar-reopen cvm-btn"
+          onClick={() => setHeaderVisible(true)}
+          aria-label="View top bar"
+        >
+          <Eye size={14} /> View top bar
+        </button>
+      )}
 
       <div className="cvm-mobile-tabs">
         <button
@@ -606,12 +670,15 @@ export default function CVMaker() {
         </button>
       </div>
 
+      {infoPage ? (
+        <InfoPage page={infoPage} onBack={() => setInfoPage(null)} />
+      ) : (
       <div className="cvm-layout">
         <div className={"cvm-form-pane" + (mobileView !== "edit" ? " hide-mobile" : "")}>
           <div className="cvm-intro">
             <div className="cvm-intro-top">
               <div>
-                <h3>Fill in what's true. We'll handle the formatting.</h3>
+                <h3>Fill in what&apos;s true. We&apos;ll handle the formatting.</h3>
                 <p>
                   One column, standard headings, no tables or icons in the resume itself — the
                   layout every ATS (Workday, Greenhouse, Taleo, iCIMS) can parse cleanly. Only
@@ -714,7 +781,7 @@ export default function CVMaker() {
               title="Experience"
               desc="Reverse chronological. Start bullets with an action verb, quantify results."
             />
-            {data.experience.map((exp, i) => (
+            {data.experience.map((exp) => (
               <div className="cvm-card" key={exp.id}>
                 {data.experience.length > 1 && (
                   <button className="cvm-card-remove" onClick={() => removeItem("experience", exp.id)}>
@@ -1107,9 +1174,16 @@ export default function CVMaker() {
           </div>
         </div>
       </div>
+      )}
 
       <footer className="cvm-footer">
         <div className="cvm-footer-inner">
+          <nav className="cvm-footer-nav" aria-label="Website links">
+            <button onClick={() => setInfoPage("about")}>About</button>
+            <button onClick={() => setInfoPage("founder")}>Founder</button>
+            <button onClick={() => setInfoPage("legal")}>Legal</button>
+          </nav>
+          <p className="cvm-footer-coming-soon">Coming soon: AI assistance, custom layouts, smart suggestions, and more.</p>
           <p>
             Nothing you type is uploaded or stored — everything stays in this browser tab. {user ? "Your changes sync to cloud." : 'Use "Save Locally" or sign in to sync to cloud.'}
           </p>

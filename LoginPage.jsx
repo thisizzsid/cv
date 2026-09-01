@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogIn, UserPlus, Mail, Lock, AlertCircle } from 'lucide-react';
+import { LogIn, UserPlus, AlertCircle } from 'lucide-react';
 import { signIn, signUp } from './firebase-auth';
 
 export default function LoginPage({ onAuthSuccess }) {
